@@ -1,12 +1,12 @@
 """Postgres connection, schema setup and price cache helpers."""
 
-from datetime import date
 from functools import cache
 
+from psycopg.rows import class_row
 from psycopg_pool import ConnectionPool
 
 from portfolio_copilot.config import get_settings
-from portfolio_copilot.data.types import Source
+from portfolio_copilot.data.models import PricePoint, Source
 
 SCHEMA = [
     """
@@ -66,9 +66,9 @@ def is_fresh(source: Source, symbol: str, max_age_hours: int | None = None) -> b
 
 
 def save_prices(
-    source: Source, symbol: str, name: str | None, prices: list[tuple[date, float]]
+    source: Source, symbol: str, name: str | None, prices: list[PricePoint]
 ) -> None:
-    """Insert price rows (skipping dates already saved) and mark the instrument as fetched."""
+    """Insert or update price rows and mark the instrument as fetched."""
     with get_pool().connection() as conn:
         with conn.cursor() as cursor:
             cursor.executemany(
@@ -78,8 +78,8 @@ def save_prices(
                 ON CONFLICT (source, symbol, date) DO UPDATE SET price = EXCLUDED.price
                 """,
                 [
-                    (source.value, symbol, price_date, price)
-                    for price_date, price in prices
+                    (source.value, symbol, point.price_date, point.price)
+                    for point in prices
                 ],
             )
         conn.execute(
@@ -87,21 +87,22 @@ def save_prices(
             INSERT INTO instruments (source, symbol, name, last_fetched)
             VALUES (%s, %s, %s, now())
             ON CONFLICT (source, symbol)
-            DO UPDATE SET name = EXCLUDED.name, last_fetched = now()
+            DO UPDATE SET name = COALESCE(EXCLUDED.name, instruments.name), last_fetched = now()
             """,
             (source.value, symbol, name),
         )
 
 
-def load_prices(source: Source, symbol: str) -> list[tuple[date, float]]:
+def load_prices(source: Source, symbol: str) -> list[PricePoint]:
     """All cached prices for an instrument, oldest first."""
     with get_pool().connection() as conn:
-        return conn.execute(
-            """
-            SELECT date, price::float8
-            FROM price_history
-            WHERE source = %s AND symbol = %s
-            ORDER BY date
-            """,
-            (source.value, symbol),
-        ).fetchall()
+        with conn.cursor(row_factory=class_row(PricePoint)) as cursor:
+            return cursor.execute(
+                """
+                SELECT date AS price_date, price::float8 AS price
+                FROM price_history
+                WHERE source = %s AND symbol = %s
+                ORDER BY date
+                """,
+                (source.value, symbol),
+            ).fetchall()

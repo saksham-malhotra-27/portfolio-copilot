@@ -12,10 +12,10 @@ TCS = "TCS.NS"
 
 def test_history_is_sorted_and_positive():
     history = get_stock_history(TCS)
-    dates = [price_date for price_date, _ in history]
+    dates = [point.price_date for point in history]
     assert len(history) > 1000  # about 5 years of trading days
     assert dates == sorted(dates)
-    assert all(price > 0 for _, price in history)
+    assert all(point.price > 0 for point in history)
 
 
 def test_ticker_is_normalized():

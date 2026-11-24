@@ -14,7 +14,7 @@ PARAG_PARIKH_FLEXI_CAP_DIRECT = "122639"
 def test_search_finds_scheme():
     results = search_mf("parag parikh flexi cap direct growth")
     assert any(
-        result["scheme_code"] == PARAG_PARIKH_FLEXI_CAP_DIRECT for result in results
+        result.scheme_code == PARAG_PARIKH_FLEXI_CAP_DIRECT for result in results
     )
 
 
@@ -24,10 +24,10 @@ def test_search_respects_limit():
 
 def test_history_is_sorted_and_positive():
     history = get_mf_history(PARAG_PARIKH_FLEXI_CAP_DIRECT)
-    dates = [nav_date for nav_date, _ in history]
+    dates = [point.price_date for point in history]
     assert len(history) > 1000
     assert dates == sorted(dates)
-    assert all(nav > 0 for _, nav in history)
+    assert all(point.price > 0 for point in history)
 
 
 def test_int_scheme_code_hits_same_cache():
