@@ -2,6 +2,7 @@ from functools import cache
 
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr
 
 load_dotenv()
 

@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from portfolio_copilot.config import get_settings
 from portfolio_copilot.data.db import is_fresh, load_prices, save_prices
+from portfolio_copilot.data.http import get_http_client
 from portfolio_copilot.data.models import PricePoint, SchemeSearchResult, Source
 
 BASE_URL = "https://api.mfapi.in/mf"
@@ -37,9 +38,8 @@ class _NavEntry(BaseModel):
 
 def _fetch_nav_history(scheme_code: str) -> tuple[str | None, list[PricePoint]]:
     """Call the API for one scheme. Returns (scheme name, prices) in API order."""
-    response = httpx.get(
+    response = get_http_client().get(
         f"{BASE_URL}/{scheme_code}",
-        timeout=get_settings().http_timeout_seconds,
     )
     response.raise_for_status()
     payload = _NavResponse.model_validate(response.json())
@@ -82,10 +82,9 @@ def search_mf(
     query: str, limit: int = DEFAULT_SEARCH_LIMIT
 ) -> list[SchemeSearchResult]:
     """Find schemes by name."""
-    response = httpx.get(
+    response = get_http_client().get(
         f"{BASE_URL}/search",
         params={"q": query},
-        timeout=get_settings().http_timeout_seconds,
     )
     response.raise_for_status()
     return [SchemeSearchResult.model_validate(hit) for hit in response.json()[:limit]]
