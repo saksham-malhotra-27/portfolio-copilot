@@ -28,6 +28,7 @@ class SchemeSearchResult(BaseModel):
     scheme_code: str = Field(validation_alias="schemeCode")
     name: str = Field(validation_alias="schemeName")
 
+
 class Cashflow(BaseModel):
     """One investment or withdrawal. Negative = money invested, positive = money received or current value."""
 

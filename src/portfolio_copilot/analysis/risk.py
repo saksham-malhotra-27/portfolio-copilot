@@ -14,7 +14,9 @@ def daily_returns(prices: Sequence[PricePoint]) -> list[float]:
     """Return from each price to the next, e.g. [0.01, -0.02, ...]."""
     if len(prices) < 2:
         raise ValueError(f"Need at least 2 prices, got {len(prices)}")
-    return [current.price / previous.price - 1 for previous, current in pairwise(prices)]
+    return [
+        current.price / previous.price - 1 for previous, current in pairwise(prices)
+    ]
 
 
 def annualized_volatility(prices: Sequence[PricePoint]) -> float:

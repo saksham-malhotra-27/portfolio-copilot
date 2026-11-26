@@ -9,6 +9,9 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "httpx>=0.28.1",
+    "langchain-google-genai>=4.5.3",
+    "langgraph>=1.2.24",
+    "langgraph-checkpoint-postgres>=3.2.1",
     "psycopg-pool>=3.3.3",
     "psycopg[binary]>=3.3.9",
     "pydantic>=2.14.4",

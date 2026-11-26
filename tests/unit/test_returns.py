@@ -2,7 +2,12 @@ from datetime import date, timedelta
 
 import pytest
 
-from portfolio_copilot.analysis.returns import absolute_return, cagr, rolling_returns, xirr
+from portfolio_copilot.analysis.returns import (
+    absolute_return,
+    cagr,
+    rolling_returns,
+    xirr,
+)
 from portfolio_copilot.data.models import Cashflow, PricePoint
 
 
@@ -22,7 +27,7 @@ def test_needs_at_least_two_prices():
 
 def test_cagr_doubling_in_two_years():
     prices = [_point(date(2020, 1, 1), 100), _point(date(2022, 1, 1), 200)]
-    assert cagr(prices) == pytest.approx(0.4142, abs=1e-3)       # about sqrt(2) - 1
+    assert cagr(prices) == pytest.approx(0.4142, abs=1e-3)  # about sqrt(2) - 1
 
 
 def test_cagr_rejects_short_history():
@@ -55,19 +60,24 @@ def test_xirr_single_investment():
         Cashflow(flow_date=date(2024, 1, 1), amount=-10_000),
         Cashflow(flow_date=date(2025, 1, 1), amount=11_000),
     ]
-    expected = 1.1 ** (365 / 366) - 1        # 2024 is a leap year: 366 days
+    expected = 1.1 ** (365 / 366) - 1  # 2024 is a leap year: 366 days
     assert xirr(flows) == pytest.approx(expected, abs=1e-6)
 
 
 def test_xirr_monthly_sip_has_zero_npv():
-    flows = [Cashflow(flow_date=date(2024, month, 1), amount=-5_000) for month in range(1, 13)]
+    flows = [
+        Cashflow(flow_date=date(2024, month, 1), amount=-5_000)
+        for month in range(1, 13)
+    ]
     flows.append(Cashflow(flow_date=date(2025, 1, 1), amount=66_000))
 
     rate = xirr(flows)
     first = flows[0].flow_date
-    npv = sum(f.amount / (1 + rate) ** ((f.flow_date - first).days / 365) for f in flows)
+    npv = sum(
+        f.amount / (1 + rate) ** ((f.flow_date - first).days / 365) for f in flows
+    )
     assert npv == pytest.approx(0, abs=0.01)
-    assert rate > 0                           # 66,000 back on 60,000 invested
+    assert rate > 0  # 66,000 back on 60,000 invested
 
 
 def test_xirr_rejects_one_sided_cashflows():

@@ -3,7 +3,11 @@ from datetime import date, timedelta
 
 import pytest
 
-from portfolio_copilot.analysis.risk import annualized_volatility, daily_returns, max_drawdown
+from portfolio_copilot.analysis.risk import (
+    annualized_volatility,
+    daily_returns,
+    max_drawdown,
+)
 from portfolio_copilot.data.models import PricePoint
 
 
@@ -37,5 +41,7 @@ def test_volatility_of_constant_price_is_zero():
 def test_volatility_known_value():
     # daily returns of +1%, -1%, +1%, -1%
     prices = _series([100, 101, 99.99, 100.9899, 99.980001])
-    expected = 0.01 * math.sqrt(4 / 3) * math.sqrt(252)   # sample stdev of ±0.01, annualized
+    expected = (
+        0.01 * math.sqrt(4 / 3) * math.sqrt(252)
+    )  # sample stdev of ±0.01, annualized
     assert annualized_volatility(prices) == pytest.approx(expected, rel=1e-6)

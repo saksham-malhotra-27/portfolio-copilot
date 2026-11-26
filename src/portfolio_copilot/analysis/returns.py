@@ -30,7 +30,8 @@ def _annualize(start: PricePoint, end: PricePoint) -> float:
 
 def _npv(rate: float, cashflows: Sequence[Cashflow], first_date: date) -> float:
     return sum(
-        flow.amount / (1 + rate) ** ((flow.flow_date - first_date).days / XIRR_DAYS_PER_YEAR)
+        flow.amount
+        / (1 + rate) ** ((flow.flow_date - first_date).days / XIRR_DAYS_PER_YEAR)
         for flow in cashflows
     )
 
@@ -50,11 +51,15 @@ def cagr(prices: Sequence[PricePoint]) -> float:
     _require_points(prices)
     days = (prices[-1].price_date - prices[0].price_date).days
     if days < MIN_CAGR_DAYS:
-        raise ValueError(f"CAGR needs at least {MIN_CAGR_DAYS} days of history, got {days}")
+        raise ValueError(
+            f"CAGR needs at least {MIN_CAGR_DAYS} days of history, got {days}"
+        )
     return _annualize(prices[0], prices[-1])
 
 
-def rolling_returns(prices: Sequence[PricePoint], window_years: float) -> RollingReturnsSummary:
+def rolling_returns(
+    prices: Sequence[PricePoint], window_years: float
+) -> RollingReturnsSummary:
     """Annualized return of every window_years-long period in the history."""
     _require_points(prices)
     if window_years < MIN_ROLLING_WINDOW_YEARS:
@@ -87,8 +92,12 @@ def rolling_returns(prices: Sequence[PricePoint], window_years: float) -> Rollin
 
 def xirr(cashflows: Sequence[Cashflow]) -> float:
     """Annualized return for irregular cashflows (e.g. SIPs), matching Excel's XIRR."""
-    if not any(flow.amount < 0 for flow in cashflows) or not any(flow.amount > 0 for flow in cashflows):
-        raise ValueError("XIRR needs at least one negative (invested) and one positive (value) cashflow")
+    if not any(flow.amount < 0 for flow in cashflows) or not any(
+        flow.amount > 0 for flow in cashflows
+    ):
+        raise ValueError(
+            "XIRR needs at least one negative (invested) and one positive (value) cashflow"
+        )
 
     first_date = min(flow.flow_date for flow in cashflows)
     low, high = XIRR_LOWER_RATE, XIRR_UPPER_RATE
