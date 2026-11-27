@@ -6,7 +6,6 @@ from typing import Any
 import httpx
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
-from portfolio_copilot.config import get_settings
 from portfolio_copilot.data.db import is_fresh, load_prices, save_prices
 from portfolio_copilot.data.http import get_http_client
 from portfolio_copilot.data.models import PricePoint, SchemeSearchResult, Source
