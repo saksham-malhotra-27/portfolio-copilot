@@ -4,6 +4,7 @@ import pytest
 
 from portfolio_copilot.data.db import get_pool, init_db
 from portfolio_copilot.data.http import get_http_client
+from src.portfolio_copilot.agent.checkpointer import close_checkpointer
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -12,3 +13,4 @@ def database():
     yield
     get_pool().close()
     get_http_client().close()
+    close_checkpointer()
